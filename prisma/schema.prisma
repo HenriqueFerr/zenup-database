@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Empresas {
+  id_empresa Int @id @default(autoincrement())
+  nome_empresa String @db.VarChar(255)
+  cnpj String @unique
+  plano String?
+  dominio_email String @unique @db.VarChar(50)
+
+  equipe Equipes[]
+  usuario Usuarios[]
+
+}
+
+model Equipes {
+  id_equipe Int @id @default(autoincrement())
+  nome_equipe String @db.VarChar(255)
+  descricao String? @db.VarChar(255)
+
+  empresa Empresas @relation(fields: [id_empresa], references: [id_empresa])
+  id_empresa Int
+
+  usuario Usuarios[]
+  questionario Questionarios[]
+  
+}
+
+model Usuarios {
+  id_usuario Int @id @default(autoincrement())
+  nome_funcionario String @db.VarChar(255)
+  email String @unique
+  senha_hash String
+  tipo_usuario String
+  ativo Boolean @default(true)
+
+  empresa Empresas @relation(fields: [id_empresa], references: [id_empresa])
+  id_empresa Int
+  equipe Equipes @relation(fields: [id_equipe], references: [id_equipe])
+  id_equipe Int
+
+  conversa_ia Conversa_IA[]
+
+}
+
+model Questionarios {
+  id_questionario Int @id @default(autoincrement())
+  equipe Equipes @relation(fields: [id_equipe], references: [id_equipe])
+  id_equipe Int
+  resposta Respostas[]
+  dica Dicas[]
+}
+
+model Respostas {
+  id_resposta Int @id @default(autoincrement())
+  data_resposta DateTime @default(now())
+  humor String
+  energia String
+  estresse String
+  questionario Questionarios @relation(fields: [id_questionario], references: [id_questionario])
+  id_questionario Int
+}
+
+
+model Dicas {
+  id_conversa Int @id @default(autoincrement())
+  resumo String
+  data_conversa DateTime @default(now())
+  questionario Questionarios @relation(fields: [id_questionario],references: [id_questionario])
+  id_questionario Int
+}
+
+
+model Conversa_IA {
+  id_conversa Int @id @default(autoincrement())
+  resumo String @db.VarChar(255)
+  data_conversa DateTime @default(now())
+  usuario Usuarios @relation(fields: [id_usuario], references: [id_usuario])
+  id_usuario Int
+}
+
+
+
