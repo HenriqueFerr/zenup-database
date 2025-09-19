@@ -69,3 +69,49 @@ exports.getIndicadoresAgregados = async (req, res) => {
     res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };
+
+
+exports.getUsuariosPorEmpresa = async (req, res) => {
+  try {
+    const id_empresa_param = req.params.id;
+    const usuarioLogado = req.usuario;
+
+    // 1. Verificação de permissão
+    // Apenas gestores podem acessar esta rota
+    if (usuarioLogado.tipo !== 'gestor') {
+      return res.status(403).json({ message: 'Acesso negado. Apenas gestores podem visualizar a lista de usuários.' });
+    }
+
+    // Apenas gestores de sua própria empresa podem acessar este recurso
+    const empresaUsuario = await prisma.usuario.findUnique({
+      where: { id_usuario: usuarioLogado.id },
+      select: { id_empresa: true }
+    });
+
+    if (empresaUsuario.id_empresa !== id_empresa_param) {
+      return res.status(403).json({ message: 'Acesso negado. Você não tem permissão para visualizar os usuários desta empresa.' });
+    }
+
+    // lista de usuarios da empresa
+    const usuarios = await prisma.usuario.findMany({
+      where: {
+        id_empresa: id_empresa_param
+      },
+      // tirando campos sensíveis como 'senha_hash' por segurança
+      select: {
+        id_usuario: true,
+        nome: true,
+        email: true,
+        tipo_usuario: true,
+      }
+    });
+    res.status(200).json({
+      message: 'Lista de usuários obtida com sucesso.',
+      usuarios: usuarios
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar usuários por empresa:', error);
+    res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+};
