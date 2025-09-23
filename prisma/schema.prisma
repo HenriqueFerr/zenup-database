@@ -1,12 +1,12 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
 
 model Empresas {
   id_empresa Int @id @default(autoincrement())
@@ -61,9 +61,9 @@ model Questionarios {
 model Respostas {
   id_resposta Int @id @default(autoincrement())
   data_resposta DateTime @default(now())
-  humor String
-  energia String
-  estresse String
+  humor String @db.VarChar(50)
+  energia String @db.VarChar(50)
+  estresse String @db.VarChar(50)
   questionario Questionarios @relation(fields: [id_questionario], references: [id_questionario])
   id_questionario Int
 }
