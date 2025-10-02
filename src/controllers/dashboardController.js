@@ -35,7 +35,6 @@ exports.getIndicadoresAgregados = async (req, res) => {
         estresse: true,
       }
     });
-
     // Calcula os indicadores médios
     if (respostas.length === 0) {
       return res.status(200).json({

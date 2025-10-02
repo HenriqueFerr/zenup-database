@@ -1,8 +1,13 @@
 const bcrypt = require('bcrypt');
-const { PrismaClient } = require('@prisma/client'); // <- AQUI!
-const prisma = new PrismaClient(); // <- É importante instanciar o prisma aqui
+const { PrismaClient } = require('@prisma/client'); // <- Importando o prisma
+const prisma = new PrismaClient(); // <- Instanciando o prisma
 const saltRounds = 10;
 const userService = require('../service/userService');
+
+
+
+// Ficou responsável apenas por receber as requisições e responder com json e status de cada requisição.
+
 
 const userController = {
   async createUser(req, res) {
