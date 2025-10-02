@@ -27,7 +27,7 @@ const userService = {
   },
 
   async getAllUsers() {
-    return await prisma.user.findMany();
+    return prisma.user.findMany();
   },
 
   async getUserById(id_user) {

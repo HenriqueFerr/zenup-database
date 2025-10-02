@@ -31,13 +31,17 @@ const userController = {
     }
   },
 
-  /*async getUserById(req, res) {
+  async getUserById(req, res) {
     try {
-
-    }catch() {
-
+      const user = await userService.getUserById(parseInt(req.params.id));
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado.'});
+      }
+    }catch(error) {
+      console.error('Erro ao buscar usuário: ', error);
+      res.status(500).json({ message: 'Erro interno do servidor.'});
     }
-  },*/
+  },
 
   async updateUser(req, res) {
     try {
