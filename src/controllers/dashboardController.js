@@ -1,4 +1,4 @@
-const dashboardService = require('../services/dashboardService');
+const dashboardService = require('../service/dashboardService');
 
 // Rota para obter indicadores agregados
 exports.getIndicadoresAgregados = async (req, res) => {
@@ -70,4 +70,7 @@ exports.getUsuariosPorEmpresa = async (req, res) => {
     }
 };
 
-module.exports = {};
+module.exports = {
+    getIndicadoresAgregados: exports.getIndicadoresAgregados,
+    getUsuariosPorEmpresa: exports.getUsuariosPorEmpresa
+}

@@ -1,5 +1,3 @@
-// src/services/authService.js
-
 // 1. Importações e Inicialização
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient(); // Instância para interagir com o DB

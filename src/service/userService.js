@@ -50,7 +50,7 @@ const userService = {
   },
 
   async deleteUser(id_user) {
-    return await prisma.usuario.delete({
+    return await prisma.user.delete({
       where: {id_user: id_user}
     });
   }

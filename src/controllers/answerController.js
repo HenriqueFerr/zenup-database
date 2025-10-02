@@ -17,7 +17,7 @@ exports.createResposta = async (req, res) => {
   } catch (error) {
     console.error('Erro ao criar resposta:', error);
 
-    if (error.message.includes('Falha os registrar')) {
+    if (error.message.includes('Falha ao registrar')) {
       return res.status(500).json({ message: error.message });
     }
 
@@ -26,4 +26,6 @@ exports.createResposta = async (req, res) => {
 };
 
 
-module.exports = {};
+module.exports = {
+    createResposta: exports.createResposta,
+};

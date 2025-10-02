@@ -1,4 +1,4 @@
-const authService = require('../services/authService');
+const authService = require('../service/authService');
 
 exports.login = async (req, res) => {
   try {
@@ -11,7 +11,7 @@ exports.login = async (req, res) => {
     });
   }catch ( error ) {
     console.error('Erro ao tentar logar:', error.message);
-    if (error.message === AUTH_INVALID) {
+    if (error.message === 'AUTH_INVALID') {
       return res.status(401).json({ message: 'Email ou senha inválidos'});
     };
 
@@ -19,4 +19,6 @@ exports.login = async (req, res) => {
   }
 };
 
-module.exports = {}
+module.exports = {
+  login: exports.login,
+};
