@@ -1,33 +1,29 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const answerService = require('../service/answerService');
 
 exports.createResposta = async (req, res) => {
   try {
     const { humor, energia, estresse, resumo } = req.body;
-    const id_usuario = req.usuario.id;
-
-    //verifica o preenchimento dos cards
+    const userId = req.user.id; // Obtém o ID do usuário logado do token
+    
     if (humor === undefined || energia === undefined || estresse === undefined) {
-      return res.status(400).json({ message: 'Campos humor, energia e estresse são obrigatórios.' });
+      return res.status(400).json({ message: "Campos obrigatórios: humor, energia, estresse" });
     }
 
-    // registra no banco
-    const newResposta = await prisma.respostas.create({
-      data: {
-        humor: humor,
-        energia: energia,
-        estresse: estresse,
-        resumo: resumo,
-        id_usuario: id_usuario,
-      },
-    });
+    const newResposta = await answerService.createResposta(req.body, userId);
+    return res.status(201).json({
+      message: 'Resposta registrada com sucesso',
 
-    res.status(201).json({
-      message: 'Resposta registrada com sucesso!',
-      resposta: newResposta,
     });
   } catch (error) {
-    console.error('Erro ao registrar resposta:', error);
-    res.status(500).json({ message: 'Erro interno do servidor.' });
+    console.error('Erro ao criar resposta:', error);
+
+    if (error.message.includes('Falha os registrar')) {
+      return res.status(500).json({ message: error.message });
+    }
+
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
+
+
+module.exports = {};
