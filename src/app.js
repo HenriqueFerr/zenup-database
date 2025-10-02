@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const { PrismaClient } = require("@prisma/client");
 
@@ -25,4 +26,4 @@ app.use('/api/dashboard', dashboardRoutes);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
 
-//http://localhost:3000/api/users e a rota que quer entrar
+//http://localhost:3000/api/e a rota quer acessar => (users / auth / answer / dashboard) 
