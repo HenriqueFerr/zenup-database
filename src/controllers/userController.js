@@ -2,32 +2,61 @@ const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client'); // <- AQUI!
 const prisma = new PrismaClient(); // <- É importante instanciar o prisma aqui
 const saltRounds = 10;
+const userService = require('../service/userService');
 
-exports.createUser = async (req, res) => {
-  try {
-    const { nome, email, senha, id_empresa, tipo_usuario } = req.body;
-
-    const hashedPassword = await bcrypt.hash(senha, saltRounds);
-
-    const newUser = await prisma.usuario.create({
-      data: {
-        nome,
-        email,
-        senha_hash: hashedPassword,
-        id_empresa: id_empresa ? Number(id_empresa) : null,
-        ...(tipo_usuario ? { tipo_usuario } : {}), // opcional, se existir no schema
+const userController = {
+  async createUser(req, res) {
+    try {
+      const newUser = await userService.createUser(req.body);
+      res.status(201).json({
+        message: 'Usuário criado com sucesso!',
+        user: newUser
+      });
+    }catch (error) {
+      console.error('Erro ao criar usuário: ', error);
+      if (error.mensage === 'Este e-mail já está cadastrado.') {
+        return res.status(409).json({ message: error.message});
       }
-});
-
-    return res.status(201).json({
-      message: 'Usuário criado com sucesso!',
-      user: newUser
-    });
-  } catch (error) {
-    console.error('Erro ao criar usuário', error);
-    if (error.code === 'P2002') {
-      return res.status(409).json({ message: 'Este e-mail já está cadastrado' });
+      return res.status(500).json({message: 'Error interno do servidor.'});
     }
-    return res.status(500).json({ message: 'Erro interno do servidor.' });
-    };
-}
+  },
+
+  async getAllUsers(req, res) {
+    try {
+      const users = await userService.getAllUsers();
+      res.status(200).json(users);
+    }catch (error) {
+      console.error('Erro ao buscar usuários: ', error);
+      res.status(500).json({ message: 'Erro interno do servidor.' });
+    }
+  },
+
+  /*async getUserById(req, res) {
+    try {
+
+    }catch() {
+
+    }
+  },*/
+
+  async updateUser(req, res) {
+    try {
+      const updatedUser = await userService.updateUser(parseInt(req.params.id), req.body);
+      res.status(200).json({ message: 'Usuário atualizado com sucesso!', user: updatedUser});
+    } catch (error) {
+      console.error('Erro ao atualizar usuário: ', error);
+    }
+  },
+
+  async deleteUser(req, res) {
+    try {
+      await userService.deleteUser(parseInt(req.params.id));
+      res.status(200).json ({ message: 'Usuário deletado com sucesso!'});
+    } catch (error) {
+      console.error('Erro ao deletar usuário: ', error);
+      res.status(500).json({ message: 'Erro interno do servidor.'});
+    }
+  }
+};
+
+module.exports = userController;

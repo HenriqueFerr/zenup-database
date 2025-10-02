@@ -2,13 +2,13 @@ const express = require('express');
 const { PrismaClient } = require("@prisma/client");
 
 const app = express();
-const prisma = new PrismaClient(); // <--- inicialização
+const prisma = new PrismaClient(); // <--- inicialização do banco de dados (prisma)
 
 // Middleware
 app.use(express.json());
 
 // Exemplo de rota que usa Prisma
-app.get('/api/users', async (req, res) => {
+/* app.get('/api/users', async (req, res) => {
   try {
     const users = await prisma.user.findMany();
     res.json(users);
@@ -16,7 +16,7 @@ app.get('/api/users', async (req, res) => {
     console.error(error);
     res.status(500).json({ error: 'Erro ao buscar usuários' });
   }
-});
+}); */
 
 // Importação das suas rotas
 const userRoutes = require('./routes/userRoutes');
