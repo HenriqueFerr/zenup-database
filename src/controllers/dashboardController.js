@@ -1,116 +1,73 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const dashboardService = require('../services/dashboardService');
 
 // Rota para obter indicadores agregados
 exports.getIndicadoresAgregados = async (req, res) => {
-  try {
-    const id_empresa = req.params.id;
-    const usuarioLogado = req.usuario;
+    const id_empresa = req.params.id; // ID da empresa no URL
+    const usuarioLogadoId = req.usuario.id; // ID do usuário injetado pelo middleware
 
-    // Apenas gestores podem acessar esta rota
-    if (usuarioLogado.tipo !== 'gestor') {
-      return res.status(403).json({ message: 'Acesso negado. Apenas gestores podem acessar este recurso.' });
-    }
+    try {
+        // 1. Checagem de Permissão
+        await dashboardService.checkPermission(usuarioLogadoId, id_empresa);
 
-    // Apenas gestores da empresa em questão podem acessar os indicadores
-    const empresaUsuario = await prisma.usuario.findUnique({
-      where: { id_usuario: usuarioLogado.id },
-      select: { id_empresa: true }
-    });
+        // 2. Chama o Service para obter os dados
+        const indicadores = await dashboardService.getIndicadoresAgregados(usuarioLogadoId, id_empresa);
 
-    if (empresaUsuario.id_empresa !== id_empresa) {
-      return res.status(403).json({ message: 'Acesso negado. Você não tem permissão para visualizar os indicadores desta empresa.' });
-    }
-
-    // Busca as respostas de todos os colaboradores da empresa
-    const respostas = await prisma.respostas.findMany({
-      where: {
-        usuario: {
-          id_empresa: id_empresa
+        // 3. Resposta HTTP
+        if (indicadores.totalCheckins === 0) {
+            return res.status(200).json({
+                message: 'Nenhum dado de check-in disponível para esta empresa.',
+                indicadores: indicadores
+            });
         }
-      },
-      select: {
-        humor: true,
-        energia: true,
-        estresse: true,
-      }
-    });
-    // Calcula os indicadores médios
-    if (respostas.length === 0) {
-      return res.status(200).json({
-        message: 'Nenhum dado de check-in disponível para esta empresa.',
-        indicadores: {
-          humorMedio: 0,
-          energiaMedia: 0,
-          estresseMedio: 0,
-          totalCheckins: 0
+
+        res.status(200).json({
+            message: 'Indicadores agregados gerados com sucesso.',
+            indicadores: indicadores
+        });
+
+    } catch (error) {
+        console.error('Erro ao gerar indicadores agregados:', error.message);
+
+        // Mapeamento de Erros Lançados pelo Service
+        if (error.message === 'PERMISSION_DENIED') {
+            return res.status(403).json({ message: 'Acesso negado. Apenas gestores podem acessar este recurso.' });
         }
-      });
+        if (error.message === 'ACCESS_DENIED_TO_COMPANY') {
+            return res.status(403).json({ message: 'Acesso negado. Você não tem permissão para visualizar os indicadores desta empresa.' });
+        }
+
+        res.status(500).json({ message: 'Erro interno do servidor.' });
     }
-
-    const totalCheckins = respostas.length;
-    const humorMedio = respostas.reduce((sum, r) => sum + r.humor, 0) / totalCheckins;
-    const energiaMedia = respostas.reduce((sum, r) => sum + r.energia, 0) / totalCheckins;
-    const estresseMedio = respostas.reduce((sum, r) => sum + r.estresse, 0) / totalCheckins;
-
-    res.status(200).json({
-      message: 'Indicadores agregados gerados com sucesso.',
-      indicadores: {
-        humorMedio: parseFloat(humorMedio.toFixed(2)),
-        energiaMedia: parseFloat(energiaMedia.toFixed(2)),
-        estresseMedio: parseFloat(estresseMedio.toFixed(2)),
-        totalCheckins: totalCheckins
-      }
-    });
-
-  } catch (error) {
-    console.error('Erro ao gerar indicadores agregados:', error);
-    res.status(500).json({ message: 'Erro interno do servidor.' });
-  }
 };
 
 
+// Rota para obter lista de usuários
 exports.getUsuariosPorEmpresa = async (req, res) => {
-  try {
-    const id_empresa_param = req.params.id;
-    const usuarioLogado = req.usuario;
+    const id_empresa = req.params.id;
+    const usuarioLogadoId = req.usuario.id;
 
-    // 1. Verificação de permissão
-    // Apenas gestores podem acessar esta rota
-    if (usuarioLogado.tipo !== 'gestor') {
-      return res.status(403).json({ message: 'Acesso negado. Apenas gestores podem visualizar a lista de usuários.' });
+    try {
+        // 1. Checagem de Permissão (Reutiliza a lógica)
+        await dashboardService.checkPermission(usuarioLogadoId, id_empresa);
+        // 2. Chama o Service
+        const usuarios = await dashboardService.getUsuariosPorEmpresa(id_empresa);
+        res.status(200).json({
+            message: 'Lista de usuários obtida com sucesso.',
+            usuarios: usuarios
+        });
+
+    } catch (error) {
+        console.error('Erro ao buscar usuários por empresa:', error.message);
+
+        // Mapeamento de erros
+        if (error.message === 'PERMISSION_DENIED') {
+            return res.status(403).json({ message: 'Acesso negado. Apenas gestores podem visualizar a lista de usuários.' });
+        }
+        if (error.message === 'ACCESS_DENIED_TO_COMPANY') {
+            return res.status(403).json({ message: 'Acesso negado. Você não tem permissão para visualizar os usuários desta empresa.' });
+        }
+        res.status(500).json({ message: 'Erro interno do servidor.' });
     }
-
-    // Apenas gestores de sua própria empresa podem acessar este recurso
-    const empresaUsuario = await prisma.usuario.findUnique({
-      where: { id_usuario: usuarioLogado.id },
-      select: { id_empresa: true }
-    });
-
-    if (empresaUsuario.id_empresa !== id_empresa_param) {
-      return res.status(403).json({ message: 'Acesso negado. Você não tem permissão para visualizar os usuários desta empresa.' });
-    }
-
-    // lista de usuarios da empresa
-    const usuarios = await prisma.usuario.findMany({
-      where: {
-        id_empresa: id_empresa_param
-      },
-      // tirando campos sensíveis como 'senha_hash' por segurança
-      select: {
-        id_usuario: true,
-        nome: true,
-        email: true,
-        tipo_usuario: true,
-      }
-    });
-    res.status(200).json({
-      message: 'Lista de usuários obtida com sucesso.',
-      usuarios: usuarios
-    });
-
-  } catch (error) {
-    console.error('Erro ao buscar usuários por empresa:', error);
-    res.status(500).json({ message: 'Erro interno do servidor.' });
-  }
 };
+
+module.exports = {};
