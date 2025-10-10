@@ -24,9 +24,12 @@ model Equipes {
   id_equipe Int @id @default(autoincrement())
   nome_equipe String @db.VarChar(255)
   descricao String? @db.VarChar(255)
-
+  indicador_bem_estar Int @default(0)
   empresa Empresas @relation(fields: [id_empresa], references: [id_empresa])
   id_empresa Int
+
+  condicao Condicao @relation(fields: [id_condicao], references: [id_condicao])
+  id_condicao Int
 
   usuario Usuarios[]
   questionario Questionarios[]
@@ -86,5 +89,19 @@ model Conversa_IA {
   id_usuario Int
 }
 
+
+model Condicao {
+  id_condicao Int @id @default(autoincrement())
+  nome_condicao String @db.VarChar(255)
+  descricao String? @db.VarChar(255)
+  range_condicao Int
+
+  equipe Equipes[]
+
+
+}
+
+
+// 
 
 
