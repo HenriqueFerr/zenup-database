@@ -1,12 +1,12 @@
 const bcrypt = require('bcrypt');
-const { PrismaClient } = require('@prisma/client'); // <- Importando o prisma
-const prisma = new PrismaClient(); // <- Instanciando o prisma
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const saltRounds = 10;
 const userService = require('../service/userService');
 
 
 
-// Ficou responsável apenas por receber as requisições e responder com json e status de cada requisição.
+
 
 
 const userController = {
