@@ -1,14 +1,12 @@
 const dashboardService = require('../service/dashboardService');
 
-// Rota para obter indicadores agregados
 exports.getIndicadoresAgregados = async (req, res) => {
-    const id_empresa = req.params.id; 
-    const usuarioLogadoId = req.usuario.id;
+    const id_empresa = parseInt(req.params.id);
 
     try {
         await dashboardService.checkPermission(usuarioLogadoId, id_empresa);
 
-        const indicadores = await dashboardService.getIndicadoresAgregados(usuarioLogadoId, id_empresa);
+        const indicadores = await dashboardService.getIndicadoresAgregados(id_empresa);
 
         if (indicadores.totalCheckins === 0) {
             return res.status(200).json({
@@ -62,7 +60,7 @@ exports.getUsuariosPorEmpresa = async (req, res) => {
     }
 };
 
-module.exports = {
-    getIndicadoresAgregados: exports.getIndicadoresAgregados,
-    getUsuariosPorEmpresa: exports.getUsuariosPorEmpresa
-}
+/*module.exports = {
+    getIndicadoresAgregados,
+    getUsuariosPorEmpresa
+}*/

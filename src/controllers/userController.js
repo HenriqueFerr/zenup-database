@@ -1,12 +1,5 @@
-const bcrypt = require('bcrypt');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-const saltRounds = 10;
+
 const userService = require('../service/userService');
-
-
-
-
 
 
 const userController = {
@@ -19,7 +12,7 @@ const userController = {
       });
     }catch (error) {
       console.error('Erro ao criar usuário: ', error);
-      if (error.mensage === 'Este e-mail já está cadastrado.') {
+      if (error.message === 'Este e-mail já está em uso.') {
         return res.status(409).json({ message: error.message});
       }
       return res.status(500).json({message: 'Error interno do servidor.'});
@@ -28,8 +21,12 @@ const userController = {
 
   async getAllUsers(req, res) {
     try {
-      const users = await userService.getAllUsers();
-      res.status(200).json(users);
+      const user = await userService.getAllUsers();
+      res.status(200).json(user);
+      if (!user) {
+        return res.status(404).json({message: 'Usuário não encontrado.'})
+      }
+      res.status(200).json(user);
     }catch (error) {
       console.error('Erro ao buscar usuários: ', error);
       res.status(500).json({ message: 'Erro interno do servidor.' });
@@ -38,7 +35,8 @@ const userController = {
 
   async getUserById(req, res) {
     try {
-      const user = await userService.getUserById(parseInt(req.params.id));
+      const userId = parseInt(req.params.id);
+      const user = await userService.getUserById(userId);
       if (!user) {
         return res.status(404).json({ message: 'Usuário não encontrado.'});
       }
@@ -50,16 +48,19 @@ const userController = {
 
   async updateUser(req, res) {
     try {
-      const updatedUser = await userService.updateUser(parseInt(req.params.id), req.body);
+      const userId = parseInt(req.params.id);
+      const updatedUser = await userService.updateUser(userId, req.body);
       res.status(200).json({ message: 'Usuário atualizado com sucesso!', user: updatedUser});
     } catch (error) {
       console.error('Erro ao atualizar usuário: ', error);
+      res.status(500).json({ message: 'Erro interno do servidor.' });
     }
   },
 
   async deleteUser(req, res) {
     try {
-      await userService.deleteUser(parseInt(req.params.id));
+      const userId = parseInt(req.params.id);
+      await userService.deleteUser(userId);
       res.status(200).json ({ message: 'Usuário deletado com sucesso!'});
     } catch (error) {
       console.error('Erro ao deletar usuário: ', error);
@@ -68,4 +69,11 @@ const userController = {
   }
 };
 
-module.exports = userController;
+module.exports = {
+  userController,
+  createUser: userController.createUser,
+  getAllUsers: userController.getAllUsers,
+  getUserById: userController.getUserById,
+  updateUser: userController.updateUser,
+  deleteUser: userController.deleteUser
+}

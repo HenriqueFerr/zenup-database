@@ -8,11 +8,13 @@ const dashboardService = {
             where: { id_usuario: usuarioLogadoId },
             select: { id_empresa: true, tipo_usuario: true }
         });
+        
+        const idEmpresaNumeric = parseInt(empresaIdParam);
 
         if (empresaUsuario.tipo_usuario !== 'gestor') {
             throw new Error('PERMISSION_DENIED');
         }
-        if (empresaUsuario.id_empresa !== empresaIdParam) {
+        if (empresaUsuario.id_empresa !== idEmpresaNumeric) {
             throw new Error('ACCESS_DENIED_TO_COMPANY');
         }
 
@@ -43,9 +45,16 @@ const dashboardService = {
             };
         }
         const totalCheckins = respostas.length;
-        const humorMedio = respostas.reduce((sum, r) => sum + r.humor, 0) / totalCheckins;
-        const energiaMedia = respostas.reduce((sum, r) => sum + r.energia, 0) / totalCheckins;
-        const estresseMedio = respostas.reduce((sum, r) => sum + r.estresse, 0) / totalCheckins;
+        const somas = respostas.reduce((acc, r) => {
+            acc.humorSum += r.humor;
+            acc.energiaSum += r.energia;
+            acc.estresseSum += r.estresse;
+            return acc;
+        }, { humorSum: 0, energiaSum: 0, estresseSum: 0 });
+
+        const humorMedio = somas.humorSum / totalCheckins;
+        const energiaMedia = somas.energiaSum / totalCheckins;
+        const estresseMedio = somas.estresseSum / totalCheckins;
         return {
             humorMedio: parseFloat(humorMedio.toFixed(2)),
             energiaMedia: parseFloat(energiaMedia.toFixed(2)),

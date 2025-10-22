@@ -39,7 +39,7 @@ const authService = {
 
         const payload = {
             id: usuario.id_usuario,
-            tipo: usuario.tipo_usuario
+            tipo_usuario: usuario.tipo_usuario
         };
 
         const token = jwt.sign(

@@ -1,17 +1,23 @@
 const answerService = require('../service/answerService');
 
-exports.createResposta = async (req, res) => {
+const createResposta = async (req, res) => {
   try {
     const { humor, energia, estresse, resumo } = req.body;
-    const userId = req.user.id; // Obtém o ID do usuário logado do token
     
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ success: false, message : "Usuário não autenticado" });
+    }
+
+    const userId = req.user.id;
     if (humor === undefined || energia === undefined || estresse === undefined) {
-      return res.status(400).json({ message: "Campos obrigatórios: humor, energia, estresse" });
+      return res.status(400).json({ success: false, message: "Campos obrigatórios: humor, energia, estresse" });
     }
 
     const newResposta = await answerService.createResposta(req.body, userId);
     return res.status(201).json({
+      success: true,
       message: 'Resposta registrada com sucesso',
+      data: newResposta
 
     });
   } catch (error) {
@@ -27,5 +33,5 @@ exports.createResposta = async (req, res) => {
 
 
 module.exports = {
-    createResposta: exports.createResposta,
+    createResposta,
 };

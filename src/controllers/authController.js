@@ -1,6 +1,6 @@
 const authService = require('../service/authService');
 
-exports.login = async (req, res) => {
+login = async (req, res) => {
   try {
     const {email, senha} = req.body;
     const result = await authService.login({email, senha});
@@ -20,5 +20,5 @@ exports.login = async (req, res) => {
 };
 
 module.exports = {
-  login: exports.login,
+  login,
 };
