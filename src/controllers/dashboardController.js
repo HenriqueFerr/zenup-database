@@ -1,7 +1,11 @@
 const dashboardService = require('../service/dashboardService');
+const { getRecommendationPhrase } = require('../service/phrasesService');
+
+const { getRecommendationPhrase } = require('../service/phrasesService'); 
 
 exports.getIndicadoresAgregados = async (req, res) => {
-    const id_empresa = parseInt(req.params.id);
+    const id_empresa = parseInt(req.params.id); 
+    const usuarioLogadoId = req.usuario.id;
 
     try {
         await dashboardService.checkPermission(usuarioLogadoId, id_empresa);
@@ -14,26 +18,36 @@ exports.getIndicadoresAgregados = async (req, res) => {
                 indicadores: indicadores
             });
         }
+        
+        // integração da lógica de recomendação de frases.
+        const recomendacaoHumor = getRecommendationPhrase('humor', indicadores.humorMedio);
+        const recomendacaoEstresse = getRecommendationPhrase('estresse', indicadores.estresseMedio);
+        const recomendacaoEnergia = getRecommendationPhrase('energia', indicadores.energiaMedia);
+
 
         res.status(200).json({
             message: 'Indicadores agregados gerados com sucesso.',
-            indicadores: indicadores
+            indicadores: {
+                ...indicadores,
+                recomendacaoHumor: recomendacaoHumor,
+                recomendacaoEstresse: recomendacaoEstresse,
+                recomendacaoEnergia: recomendacaoEnergia,
+            }
         });
 
     } catch (error) {
-        console.error('Erro ao gerar indicadores agregados:', error.message);
+        console.error('Erro ao gerar indicadores agregados:', error.message); //
 
-        if (error.message === 'PERMISSION_DENIED') {
-            return res.status(403).json({ message: 'Acesso negado. Apenas gestores podem acessar este recurso.' });
+        if (error.message === 'PERMISSION_DENIED') { //
+            return res.status(403).json({ message: 'Acesso negado. Apenas gestores podem acessar este recurso.' }); //
         }
-        if (error.message === 'ACCESS_DENIED_TO_COMPANY') {
-            return res.status(403).json({ message: 'Acesso negado. Você não tem permissão para visualizar os indicadores desta empresa.' });
+        if (error.message === 'ACCESS_DENIED_TO_COMPANY') { //
+            return res.status(403).json({ message: 'Acesso negado. Você não tem permissão para visualizar os indicadores desta empresa.' }); //
         }
 
-        res.status(500).json({ message: 'Erro interno do servidor.' });
+        res.status(500).json({ message: 'Erro interno do servidor.' }); //
     }
 };
-
 
 exports.getUsuariosPorEmpresa = async (req, res) => {
     const id_empresa = req.params.id;
@@ -59,8 +73,3 @@ exports.getUsuariosPorEmpresa = async (req, res) => {
         res.status(500).json({ message: 'Erro interno do servidor.' });
     }
 };
-
-/*module.exports = {
-    getIndicadoresAgregados,
-    getUsuariosPorEmpresa
-}*/
